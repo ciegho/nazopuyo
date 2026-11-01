@@ -1,6 +1,7 @@
 // ===== オンライン対戦(WebRTC P2P・サーバー不要。接続コードを手動で交換する) =====
-if (typeof APP_VER === 'undefined' || APP_VER !== '21') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
+if (typeof APP_VER === 'undefined' || APP_VER !== '24') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
 
+const VS_DEFAULT_COUNT = 5; // 出題数の初期値(セットの問題数がこれより少なければ全問)
 const VS_T = { step: 1000, next: 800, retry: 900, grace: 1500 }; // カウント1回/次の問題まで/失敗後のやり直し/判定の猶予(ms)
 const ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 const vs = { role: null, pc: null, ch: null, open: false, oppName: '相手', active: false, mid: 0, probs: [], N: 0, solved: 0, oppSolved: 0,
@@ -153,9 +154,9 @@ function fillVsSets() {
   const s = $('vsSetSel'), v = s.value; s.innerHTML = '';
   sets.forEach((x, i) => s.add(new Option(x.name + ` (${x.problems.length}問)`, i)));
   s.value = v !== '' ? v : curSet;
-  if (!$('vsCount').value) $('vsCount').value = sets[+s.value].problems.length;
+  if (!$('vsCount').value) $('vsCount').value = Math.min(VS_DEFAULT_COUNT, sets[+s.value].problems.length);
 }
-$('vsSetSel').onchange = () => { $('vsCount').value = sets[+$('vsSetSel').value].problems.length; };
+$('vsSetSel').onchange = () => { $('vsCount').value = Math.min(VS_DEFAULT_COUNT, sets[+$('vsSetSel').value].problems.length); };
 $('vsStart').onclick = () => {
   if (vs.role !== 'host' || !vs.open || vs.active) return;
   let ps = sets[+$('vsSetSel').value].problems.filter(p => validProblem(p) && p.tsumo.length);

@@ -1,5 +1,5 @@
 // ===== 画面・入力 =====
-const APP_VER = '21';
+const APP_VER = '24';
 // ファイルの版がそろっていないと動かないので、先に確認する
 const fatal = msg => { if (typeof showFatal === 'function') showFatal(msg); throw new Error(msg); };
 if (document.documentElement.dataset.ver !== APP_VER) fatal('index.html が古いです。index.html / logic.js / problems.js / main.js / editor.js を同じ版(zip)に入れ替えてください');
@@ -48,7 +48,7 @@ function saveSets() {
 }
 function fillSetSelect() {
   const s = $('setSel'); s.innerHTML = '';
-  sets.forEach((x, i) => s.add(new Option((x.builtin ? '📦 ' : '★ ') + x.name + ` (${x.problems.length}問)`, i)));
+  sets.forEach((x, i) => s.add(new Option((x.online ? '🌐 ' : x.builtin ? '📦 ' : '★ ') + x.name + ` (${x.problems.length}問)`, i)));
   s.value = curSet;
 }
 // むずかしさ(1〜5)の表示
@@ -212,7 +212,7 @@ function undo() {
 // ---- READY / ポーズ ----
 function startGame() {
   if (vsBanner) return;
-  if (mode === 'play' && st.phase === 'ready') { st.phase = 'play'; st.lockT = st.softT = 0; Sound.se('start'); Sound.play(); }
+  if (mode === 'play' && st.phase === 'ready') { st.phase = 'play'; st.lockT = st.softT = 0; Sound.se('start'); Sound.play(); info(); }
 }
 function pause() {
   if (mode === 'play' && st.phase === 'play' && !vsActive) { /* 対戦中はポーズ不可 */ st.phase = 'paused'; keys.down = false; Sound.pause(); Sound.se('pause'); }
@@ -226,7 +226,8 @@ function syncOverlay() {
   $('ovReady').hidden = bn || ph !== 'ready';
   $('ovPause').hidden = bn || ph !== 'paused';
   $('ovVs').hidden = !bn;
-  if (bn) { $('ovVsText').textContent = vsBanner; $('ovVsText').style.fontSize = vsBanner.length <= 2 ? '72px' : '24px'; }
+  $('ov').classList.toggle('ready', !bn && ph === 'ready'); // READY中は盤面を暗くせず、上の空きスペースに小さく出す
+  if (bn) { $('ovVsText').textContent = vsBanner; $('ovVsText').style.fontSize = vsBanner.length <= 2 ? 'min(72px, 40cqw)' : 'min(24px, 11cqw)'; }
 }
 
 // ---- ゲームループ(落下処理) ----
@@ -333,8 +334,8 @@ const goalHTML = g => g.color ? goalText(g).replace(LETTER_NAMES[g.color] + 'ぷ
 function info() {
   const g = st.prob.goal;
   $('goal').innerHTML = goalHTML(g);
-  $('ovTitle').textContent = st.prob.title + (st.prob.difficulty ? `  ${starsOf(st.prob.difficulty)} ${DIFF_NAMES[st.prob.difficulty]}` : '');
-  $('diff').textContent = st.prob.difficulty ? `${starsOf(st.prob.difficulty)} ${DIFF_NAMES[st.prob.difficulty]}` : ''; $('ovGoal').innerHTML = goalHTML(g);
+  $('ovTitle').textContent = st.prob.title + (st.prob.difficulty ? `\n${starsOf(st.prob.difficulty)} ${DIFF_NAMES[st.prob.difficulty]}` : '') + (st.prob.author ? `\n作: ${st.prob.author}` : '');
+  $('diff').textContent = (st.prob.difficulty ? `${starsOf(st.prob.difficulty)} ${DIFF_NAMES[st.prob.difficulty]}` : '') + (st.prob.author ? `  作: ${st.prob.author}` : ''); $('ovGoal').innerHTML = goalHTML(g);
   if (g.type === 'colorall') {
     const inTsumo = st.prob.tsumo.slice(st.idx).reduce((n, t) => n + t.filter(c => c === g.color).length, 0);
     $('prog').innerHTML = `${dotHTML(g.color)}ぷよ 残り${countColor(st.board, g.color) + inTsumo}匹` + (inTsumo ? `(ツモ内${inTsumo}匹を含む)` : '');
@@ -343,7 +344,8 @@ function info() {
   else $('prog').textContent = '';
   $('left').textContent = st.prob.tsumo.length - st.idx;
   $('chain').textContent = st.chain;
-  $('next').innerHTML = st.prob.tsumo.slice(st.idx + 1).map(t =>
+  $('nextLbl').textContent = st.phase === 'ready' ? 'ツモ(すべて)' : 'つぎのツモ'; // 開始前は1つ目のツモも見えるようにする
+  $('next').innerHTML = st.prob.tsumo.slice(st.phase === 'ready' ? st.idx : st.idx + 1).map(t =>
     `<span class="pair"><i class="dot" style="background:${CSS[COLORS[t[1]]]}"></i><i class="dot" style="background:${CSS[COLORS[t[0]]]}"></i></span>`
   ).join('') || '(なし)';
 }

@@ -1,5 +1,5 @@
 // ===== ゲームパッド対応(PS4/PS5 など。ブラウザの標準マッピングを使用) =====
-if (typeof APP_VER === 'undefined' || APP_VER !== '21') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
+if (typeof APP_VER === 'undefined' || APP_VER !== '24') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
 
 // ボタン番号(PS4: 0=✕ 1=○ 2=□ 3=△ 4=L1 5=R1 7=R2 8=Share 9=Options 13=十字下 14=十字左 15=十字右)。好みで変えてください
 const PAD = { rotL: [0, 2], rotR: [1, 3], drop: [5, 7], undo: [4], retry: [8], pause: [9], start: [0, 1, 9] };

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" data-ver="21">
+<html lang="ja" data-ver="24">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -18,17 +18,23 @@
   #tabs button { border: 0; background: none; color: var(--mute); font: inherit; font-weight: 700; padding: 6px 20px; border-radius: 999px; margin: 0; cursor: pointer; }
   #tabs button.on { background: var(--panel); color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
   #wrap { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
-  #stage { position: relative; width: 240px; max-width: 100%; border-radius: 14px; overflow: hidden; background: linear-gradient(#1a1f45,#0c0f26); box-shadow: 0 12px 32px rgba(10,14,60,.35); }
+  #stage { container-type: inline-size; position: relative; width: 240px; max-width: 100%; border-radius: 14px; overflow: hidden; background: linear-gradient(#1a1f45,#0c0f26); box-shadow: 0 12px 32px rgba(10,14,60,.35); }
   #stage canvas { display: block; width: 100%; height: auto; }
   body.mode-edit canvas { touch-action: none; cursor: crosshair; }
   .ov { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(10,13,36,.8); backdrop-filter: blur(3px); }
   .ov[hidden] { display: none; }
-  #ovBox { text-align: center; color: #fff; line-height: 1.6; padding: 12px; }
-  #ovBox .big { font-size: 36px; font-weight: 800; letter-spacing: .12em; margin-bottom: 8px; }
-  #ovBox button { display: block; width: 190px; margin: 8px auto; font-size: 16px; padding: 10px; background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.3); }
+  #ovBox { text-align: center; color: #fff; line-height: 1.5; padding: 12px; padding: min(12px, 4cqw); max-width: 100%; }
+  #ovBox .big { font-size: 36px; font-size: min(36px, 15cqw); font-weight: 800; letter-spacing: .08em; margin-bottom: 8px; } /* 盤面の幅に合わせて文字を縮める(スマホで READY? がはみ出さないように) */
+  #ovTitle { font-size: min(15px, 7cqw); white-space: pre-line; }
+  #ovBox button { display: block; width: 190px; margin: 8px auto; font-size: 16px; padding: 10px; width: min(190px, 84cqw); font-size: min(16px, 8cqw); padding: min(10px, 3cqw); background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.3); }
   #ovBox #ovStart, #ovBox #pResume { background: #fff; color: #14183a; border-color: #fff; }
-  #ovBox .hint { font-size: 12px; opacity: .7; }
-  #ovGoal { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .ov.ready { background: none; backdrop-filter: none; align-items: flex-start; pointer-events: none; } /* READY中: 盤面は暗くしない */
+  .ov.ready #ovBox { pointer-events: auto; background: rgba(10,13,36,.92); border-radius: 12px; padding: 6px 14px 8px; margin-top: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+  .ov.ready #ovBox .big { font-size: 22px; font-size: min(24px, 10cqw); margin-bottom: 2px; }
+  .ov.ready #ovBox button { margin: 4px auto 0; padding: 6px; width: min(150px, 70cqw); }
+  .ov.ready #ovBox #ovTitle, .ov.ready #ovBox #ovGoal, .ov.ready #ovBox .hint { display: none; }
+  #ovBox .hint { font-size: 12px; font-size: min(12px, 5.5cqw); opacity: .7; }
+  #ovGoal { font-size: 18px; font-size: min(18px, 8.5cqw); font-weight: 800; margin-bottom: 8px; }
   #side { flex: 1 1 300px; min-width: 280px; max-width: 420px; }
   .box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 0 0 10px; }
   .lbl { font-size: 12px; font-weight: 700; color: var(--mute); }
@@ -101,6 +107,11 @@
   @media (max-height: 520px) and (orientation: landscape) { /* 横向きスマホ: 盤面を画面の高さに合わせる */
     body:not(.mode-edit) #stage { width: calc((100vh - 70px) * .4); } .pad button { min-height: 44px; }
   }
+  .badge { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; vertical-align: middle; margin-left: 6px; }
+  .badge.ok { background: rgba(34,197,94,.18); color: var(--ok); } .badge.warn { background: rgba(245,158,11,.2); color: var(--warn); }
+  .badge.ng { background: rgba(239,68,68,.18); color: #dc2626; } .badge.idle, .badge.run { background: var(--soft); color: var(--mute); }
+  .chk { font-size: 13px; margin-top: 6px; white-space: pre-line; } #pubMsg { font-size: 13px; margin-top: 4px; min-height: 1.2em; }
+  .box input.wide { width: 95%; margin: 2px 0; } #pubPost { background: var(--accent); color: var(--accent-ink); border-color: transparent; } #pubPost:disabled { opacity: .45; cursor: not-allowed; }
   @media (max-width: 640px) { #wrap { justify-content: center; } #side { max-width: none; width: 100%; } .logo h1 { font-size: 20px; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -168,8 +179,8 @@ window.addEventListener('error', e => {
       </div>
       <div class="box" id="vsHostOpts" hidden>
         出題セット <select id="vsSetSel"></select><br>
-        出題数 <input id="vsCount" type="number" min="1" max="100" style="width:56px">
-        <label><input type="checkbox" id="vsShuffle"> ランダム順</label><br>
+        出題数 <input id="vsCount" type="number" min="1" max="100" style="width:56px"> (セットが5問未満なら全問)
+        <label><input type="checkbox" id="vsShuffle" checked> ランダムに選ぶ</label><br>
         <button id="vsStart">対戦開始</button>
       </div>
       <div class="box" id="vsProg" hidden>あなた <span id="vsMy"></span> / 時間 <span id="vsTime">0:00.0</span><br>相手 <span id="vsOpp"></span></div>
@@ -181,7 +192,7 @@ window.addEventListener('error', e => {
         <div class="box"><span class="lbl">のこり手数</span><b id="left"></b></div>
         <div class="box"><span class="lbl">連鎖</span><b id="chain">0</b></div>
       </div>
-      <div class="box" id="nextBox"><div class="lbl">つぎのツモ</div><span id="next"></span></div>
+      <div class="box" id="nextBox"><div class="lbl" id="nextLbl">つぎのツモ</div><span id="next"></span></div>
       <div class="box" id="msg"></div>
       <div class="pad">
         <button id="bL" aria-label="左へ">←</button><button id="bDown" aria-label="ゆっくり落とす" title="長押しで高速落下">↓</button><button id="bR" aria-label="右へ">→</button>
@@ -197,11 +208,11 @@ window.addEventListener('error', e => {
     <div class="edit-only">
       <div class="box">
         <div id="edState" style="font-size:13px;font-weight:bold;margin-bottom:6px"></div>
-        <b>セット</b>(問題をまとめる単位)<br><button id="setNew">＋ 新しいセットを作る</button><button id="setRename">名前変更</button><button id="setDel">セット削除</button><br>
+        <b>下書きセット</b>(問題をまとめる単位。このブラウザに保存)<br><button id="setNew">＋ 新しいセットを作る</button><button id="setRename">名前変更</button><button id="setDel">セット削除</button><br>
         <button id="setExport">セット書き出し</button><button id="setExportAll">全バックアップ</button><button id="setImport">ファイル読み込み</button>
         <input type="file" id="setFile" accept=".json,application/json" hidden>
       </div>
-      <div class="box">タイトル<br><input id="edTitle" style="width:95%"><br>むずかしさ <select id="edDiff"><option value="0">未設定</option><option value="1">★☆☆☆☆ 入門</option><option value="2">★★☆☆☆ やさしい</option><option value="3">★★★☆☆ ふつう</option><option value="4">★★★★☆ むずかしい</option><option value="5">★★★★★ 超むずかしい</option></select></div>
+      <div class="box"><b>① 問題を作る</b><br>タイトル<br><input id="edTitle" style="width:95%"><br>むずかしさ <select id="edDiff"><option value="0">未設定</option><option value="1">★☆☆☆☆ 入門</option><option value="2">★★☆☆☆ やさしい</option><option value="3">★★★☆☆ ふつう</option><option value="4">★★★★☆ むずかしい</option><option value="5">★★★★★ 超むずかしい</option></select></div>
       <div class="box">ぷよ(左クリック/ドラッグ=配置、右クリック=消去。「鉄」=鉄ぷよ、「壁」=壁。一番上の破線の行は13段目=幽霊ぷよ)<div id="palette"></div></div>
       <div class="box">クリア条件<br>
         <select id="edGoal">
@@ -217,9 +228,18 @@ window.addEventListener('error', e => {
         <select id="edCmp"><option value="exact">ちょうど</option><option value="atleast">以上</option></select>
       </div>
       <div class="box">ツモ(軸・子の順)<div id="tsumoList"></div><button id="edAdd">+ ツモ追加</button></div>
+      <div class="box" id="chkBox"><b>② クリアチェック</b><span id="chkBadge" class="badge idle"></span><br>
+        <button id="chkRun">✔ クリアチェック</button><button id="chkPlay" hidden>▶ 解答の例を再生</button>
+        <div id="chkOut" class="chk"></div></div>
+      <div class="box" id="pubBox"><b>③ 投稿</b>(みんなに公開)<br>
+        <div id="pubDest" style="font-size:12px;color:var(--mute)"></div>
+        ニックネーム <input id="pubName" maxlength="12" class="wide"><br>コメント(任意) <input id="pubNote" maxlength="60" class="wide"><br>
+        <button id="pubPost" disabled>📮 投稿する</button><button id="pubReload" hidden>🔄 みんなの投稿を更新</button>
+        <div id="pubMsg"></div></div>
       <div id="edmsg"></div>
-      <div>
-        <button id="edTest">▶ テストプレイ</button><button id="edSave">保存</button><button id="edDup">複製して保存</button><br>
+      <div class="box"><b>下書き</b>(このブラウザに保存。公開はしません)<br>
+        <button id="edTest">▶ テストプレイ</button><button id="edSave">下書き保存</button><button id="edDup">複製して下書き保存</button><br>
+        <button id="edUndo" title="Ctrl+Z">↶ 戻す</button><button id="edRedo" title="Ctrl+Y">↷ 進む</button><button id="edMirror">⇋ 左右反転</button><br>
         <button id="edNew">新規問題</button><button id="edGrav">重力適用</button><button id="edClear">盤面クリア</button><button id="edDel">この問題を削除</button>
       </div>
       <div class="box" style="margin-top:10px">問題の整理(保存済みの自作問題が対象)<br>
@@ -237,9 +257,13 @@ window.addEventListener('error', e => {
 <script src="logic.js"></script>
 <script src="problems.js"></script>
 <script src="problems_gen.js"></script>
+<script src="config.js"></script>
 <script src="audio.js"></script>
 <script src="main.js"></script>
+<script src="solver.js"></script>
 <script src="editor.js"></script>
+<script src="online.js"></script>
+<script src="publish.js"></script>
 <script src="versus.js"></script>
 <script src="gamepad.js"></script>
 <script src="touch.js"></script>

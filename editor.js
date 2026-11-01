@@ -1,5 +1,5 @@
 // ===== エディタモード =====
-if (typeof APP_VER === 'undefined' || APP_VER !== '21') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
+if (typeof APP_VER === 'undefined' || APP_VER !== '24') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
 const NAMES = { R: '赤', G: '緑', B: '青', Y: '黄', P: '紫' };
 let ed = null;       // 編集中の問題 {title, board, tsumo, goal, src}
 let brush = 'R';     // 選択中のぷよ('O'=お邪魔)

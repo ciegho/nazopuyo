@@ -1,5 +1,5 @@
 // ===== タッチ操作(スマホ・タブレット) =====
-if (typeof APP_VER === 'undefined' || APP_VER !== '21') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
+if (typeof APP_VER === 'undefined' || APP_VER !== '24') { const m = 'main.js が古い(または読み込めていません)。全ファイルを最新版にそろえてください'; if (typeof showFatal === 'function') showFatal(m); throw new Error(m); }
 
 // ←/→ボタン: 押している間は繰り返し移動(クリックでは1マスだけだった)
 function holdRepeat(id, dir) {
